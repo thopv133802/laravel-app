@@ -1,6 +1,7 @@
 version: '3'
 services:
-  #Laravel App
+
+  #PHP Service
   app:
     build:
       context: .
@@ -11,30 +12,31 @@ services:
     environment:
       SERVICE_NAME: app
       SERVICE_TAGS: dev
-    working_dir: /var/www/html
+    working_dir: /var/www
     volumes:
-      - ./:/var/www/html
+      - ./:/var/www
+      - ./php/local.ini:/usr/local/etc/php/conf.d/local.ini
     networks:
       - app_network
 
   #Nginx Service
-  nginx:
+  webserver:
     image: nginx:alpine
-    container_name: nginx
+    container_name: webserver
     restart: unless-stopped
     tty: true
     ports:
       - "80:80"
       - "443:443"
     volumes:
-      - ./:/var/www/html
+      - ./:/var/www
       - ./nginx/conf.d/:/etc/nginx/conf.d/
     networks:
       - app_network
 
   #MySQL Service
   db:
-    image: mysql:5.7
+    image: mysql:5.7.22
     container_name: db
     restart: unless-stopped
     tty: true
@@ -44,7 +46,8 @@ services:
       MYSQL_DATABASE: laravel
       MYSQL_ROOT_PASSWORD: root
     volumes:
-      - dbdata:/var/lib/mysql/
+      - mysqldata:/var/lib/mysql/
+      - ./mysql/my.cnf:/etc/mysql/my.cnf
     networks:
       - app_network
 
@@ -54,5 +57,5 @@ networks:
     driver: bridge
 #Volumes
 volumes:
-  dbdata:
+  mysqldata:
     driver: local
